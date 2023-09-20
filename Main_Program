@@ -9,20 +9,46 @@ void setup() {
   // put your setup code here, to run once:
   pixels.begin();
   pixels.setBrightness(10);
-  for(int i = 0; i < NUM_LEDS; i++)
-  {
-    pixels.setPixelColor(i, 0,0,255,0);
-    //This program runs off of GRBW NOT RGBW
-  }
+
+  //instantiate colors desired for start state
+  setOneColor();
+
   pixels.show();
 
 }
 
 static int brightness = 10;
 static int increasing = 1;
+static int led__state_numbers[24] = {1, 1, 1, 255, 1, 1, 255, 255, 1, 1, 255, 1, 1, 1, 255, 255, 1, 255, 255, 255, 255, 1, 1, 1};
 
+/*
+our loop function that runs all desired actions, as well as the place 
+for instantiating light color states beyond initial state
+*/
 void loop() {
   dimLight();
+}
+
+void setOneColor(){
+  for(int i = 0; i < NUM_LEDS; i++) {
+    pixels.setPixelColor(i, 0,0,255,0);
+    //This program runs off of GRBW NOT RGBW
+  }
+}
+
+void setOffsetByOneColors(){
+  int led_array_counter = 0;
+  for(int i = 0; i < NUM_LEDS; i++) {
+    pixels.setPixelColor(i, led__state_numbers[led_array_counter + 1],led__state_numbers[led_array_counter],led__state_numbers[led_array_counter + 2],0);
+    //This program runs off of GRBW NOT RGBW
+    //TODO: determine if this grbw configuration is a wiring issue and if it is consistent with code
+    if (led_array_counter >= 24) {
+      led_array_counter = 0;
+    }
+    else {
+      led_array_counter += 3;
+    }
+  }
 }
 
 void dimLight()
@@ -38,5 +64,54 @@ void dimLight()
   brightness += increasing;
   pixels.setBrightness(brightness);
   pixels.show();
+  delay(10);
+}
+
+void pixelFader() {
+  static int ledIndex = 0; // Initialize the LED index to 0
+  static int r = 0; // Initialize the red component to 0
+  static int g = 0; // Initialize the green component to 0
+  static int b = 255; // Initialize the blue component to 255 (start with blue)
+
+  // Get the target color values from the led_state_numbers array
+  //TODO: I coded this for rgb, but we can change it to grb with testing
+  int targetR = led__state_numbers[ledIndex];
+  int targetG = led__state_numbers[ledIndex + 1];
+  int targetB = led__state_numbers[ledIndex + 2];
+
+  // Gradually shift the color components towards the target values
+  if (r < targetR) {
+    r++;
+  } else if (r > targetR) {
+    r--;
+  }
+  
+  if (g < targetG) {
+    g++;
+  } else if (g > targetG) {
+    g--;
+  }
+  
+  if (b < targetB) {
+    b++;
+  } else if (b > targetB) {
+    b--;
+  }
+
+  // Set the current LED color
+  pixels.setPixelColor(ledIndex / 3, r, g, b, 0); // Divide by 3 to get the LED index
+
+  // Check if we've reached the target color, then move to the next LED
+  if (r == targetR && g == targetG && b == targetB) {
+    ledIndex += 3; // Move to the next set of RGB values in the array
+    if (ledIndex >= 24) {
+      ledIndex = 0; // Wrap around to the beginning of the array
+    }
+  }
+  
+  // Show the updated colors
+  pixels.show();
+
+  // Add a small delay to control the fading speed
   delay(10);
 }
