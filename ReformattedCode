@@ -1,0 +1,154 @@
+//import library from Adaruit Neopixel
+#include <Adafruit_NeoPixel.h>
+
+//Define constants, PIN = pin number the Neopixel light is connected to, NUM_LEDS = the number of LED lights on the Neopixel
+#define PIN       0
+#define NUM_LEDS 12
+
+//Define the pixels object from the Neopixel library
+Adafruit_NeoPixel pixels = Adafruit_NeoPixel(NUM_LEDS, PIN, NEO_RGBW + NEO_KHZ800);
+
+//Define glabal variables, one for brightness of the LEDs
+//Other four variables are an array of tracking the RGBW of every light
+static int brightness = 10;
+static int green[NUM_LEDS];
+static int red[NUM_LEDS];
+static int blue[NUM_LEDS];
+static int white[NUM_LEDS];
+
+//variables used for specific functions
+static int increasing = 1;
+static int offsetColors[6][3] = {{0,0,255},
+                                 {0,0,255},
+                                 {0,0,255},
+                                 {0,0,0},
+                                 {0,0,0},
+                                 {0,0,0}};
+
+static int spinCounter = 0;
+
+static int fortuneSpinCounter = 0;
+
+//Initial start function to only run once
+//
+void setup() {
+
+  //Populates the RGBW variables with only 0 to remove errors when changing an empty array
+  for(int i = 0; i < NUM_LEDS; i++)
+  {
+    green[0] = 0;
+    red[0] = 0;
+    blue[0] = 0;
+    white[0] = 0;
+  }
+
+  //Turn the LEDs on and set the to their initial colors depending on the function we call
+  pixels.begin();
+  //setOneColor(0,0,255,0,255);
+}
+
+//Loop function to repeat, put the bulk of the lightshow here
+void loop() {
+  fortuneSpin(255,0,0,20);
+  //spinPreset(3, 100);
+  //dimLight();
+  //spinTheLights();
+  
+}
+
+//Turns the LED lights to a color specified by the parameters.
+//r = red value, g = green value, b = blue value, w = white value, br = brightness level
+void setOneColor(int r, int g, int b, int w, int br){
+  brightness = br;
+  pixels.setBrightness(brightness);
+  for(int i = 0; i < NUM_LEDS; i++) {
+    red[i] = r;
+    green[i] = g;
+    blue[i] = b;
+    white[i] = w;
+    pixels.setPixelColor(i, green[i], red[i], blue[i], white[i]);
+    pixels.show();
+    delay(100);
+  }
+}
+
+//Set the initial colors of the LED if they are all offset by a color. Change the colors by changing offsetColors[][]
+void spinPreset(int br, int delayTime){
+  //set the brightness of the offset colors based on the parameters
+  brightness = br;
+  pixels.setBrightness(brightness);
+  
+  //j loop offsets the pixels by 6 on the second go around in otder to reflect the colors
+  for(int j = 0; j <= 6; j+=6)
+  {
+    //i loop loops through all of the led lights
+    for(int i = 0; i < 6; i++)
+    {
+      int lightPin = i+j+spinCounter;
+
+      if(lightPin >=12)
+      {
+        lightPin -= 12;
+      }
+      //sets the current pixel equal to the rgb value of that pixel stored by the offsetColors array 
+      pixels.setPixelColor(lightPin, offsetColors[i][1], offsetColors[i][0], offsetColors[i][2], 0);
+    }
+  }
+
+  //offset the lights by 12
+  if(spinCounter >= 12)
+  {
+    spinCounter = 0;
+
+  }else{
+    spinCounter++;
+  }
+  delay(delayTime);
+
+    //show the new pixels once all the pixels are changed
+  pixels.show();
+}
+
+//dim the lights until very low and then brighten the lights again to max brightness, then repeat.
+void dimLight()
+{
+  if(brightness >= 255)
+  {
+    increasing = -5;
+  }
+  if(brightness <= 10)
+  {
+    increasing = 5; 
+  }
+  brightness += increasing;
+  pixels.setBrightness(brightness);
+  pixels.show();
+  delay(10);
+}
+
+void fortuneSpin(int r, int g, int b, int br)
+{
+  brightness = br;
+  pixels.setBrightness(brightness);
+  for(int i = 0; i < NUM_LEDS; i++)
+  {
+    if(i == fortuneSpinCounter)
+    {
+      pixels.setPixelColor(i, g, r, b, 0);
+    }else{
+      pixels.setPixelColor(i, 0,0,255,0);
+    }
+    pixels.show();
+  }
+
+  if(fortuneSpinCounter >= 12)
+  {
+    fortuneSpinCounter = 0;
+  }else{
+    fortuneSpinCounter++;
+  }
+  delay(100);
+}
+
+
+
